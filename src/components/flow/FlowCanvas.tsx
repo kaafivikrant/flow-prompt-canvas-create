@@ -13,9 +13,9 @@ import '@xyflow/react/dist/style.css';
 import { useFlow } from './FlowProvider';
 import CustomNode from './CustomNode';
 
-// Define node types with correct type casting
+// Define node types with correct typing
 const nodeTypes: NodeTypes = {
-  custom: CustomNode as any, // Using type assertion to resolve compatibility issue
+  custom: CustomNode,
 };
 
 const FlowCanvas = () => {

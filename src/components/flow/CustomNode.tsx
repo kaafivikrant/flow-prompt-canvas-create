@@ -9,15 +9,19 @@ interface CustomNodeData {
   type: string;
 }
 
-const CustomNode = memo(({ data, selected }: NodeProps<{ label: string; type: string }>) => {
+// Properly type the component to work with ReactFlow's NodeProps
+const CustomNode = memo(({ data, selected }: NodeProps) => {
+  // Safely access data properties with optional chaining
+  const nodeData = data as CustomNodeData;
+  
   return (
     <div className={`p-3 ${selected ? 'border-flow-primary' : 'border-gray-200'}`}>
       <div className="flex items-start gap-3">
         <div className="bg-flow-background p-2 rounded text-flow-primary">
-          {data?.type === 'api' ? <ArrowRight size={20} /> : <SquareDashed size={20} />}
+          {nodeData?.type === 'api' ? <ArrowRight size={20} /> : <SquareDashed size={20} />}
         </div>
         <div className="flex-1">
-          <div className="font-medium text-flow-text">{data?.label}</div>
+          <div className="font-medium text-flow-text">{nodeData?.label}</div>
           <div className="text-xs text-gray-500 mt-1">Click to configure</div>
         </div>
       </div>
