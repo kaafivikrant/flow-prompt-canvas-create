@@ -7,7 +7,6 @@ import {
   MiniMap,
   BackgroundVariant,
   NodeTypes,
-  OnNodeClick,
   Node
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -34,7 +33,7 @@ const FlowCanvas = () => {
   const [selectedNodeDefinition, setSelectedNodeDefinition] = useState<NodeDefinition | undefined>(undefined);
 
   // Handle node click to show node details
-  const handleNodeClick: OnNodeClick = (_, node) => {
+  const handleNodeClick = (event: React.MouseEvent, node: Node) => {
     setSelectedNodeDefinition(node.data?.nodeDefinition);
   };
 

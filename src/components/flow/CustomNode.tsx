@@ -2,12 +2,13 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { ArrowRight, CheckCircle, DollarSign, Bell, AlertCircle, FileText, ShieldCheck } from 'lucide-react';
-import { CustomNodeData } from './types/NodeDefinition';
+import { CustomNodeData, NodeDefinition } from './types/NodeDefinition';
 
 const CustomNode = ({ data }: NodeProps) => {
   // Safely access data properties with proper type handling
   const label = data?.label as string;
   const nodeType = data?.type as string;
+  const nodeDefinition = data?.nodeDefinition as NodeDefinition | undefined;
   
   // Select icon based on node type
   const getNodeIcon = () => {
@@ -78,7 +79,7 @@ const CustomNode = ({ data }: NodeProps) => {
         <div className="flex-1">
           <div className="font-medium text-flow-text">{label}</div>
           <div className="text-xs text-gray-500 mt-1">
-            {data?.nodeDefinition?.description || 'Click to configure'}
+            {nodeDefinition?.description || 'Click to configure'}
           </div>
         </div>
       </div>
