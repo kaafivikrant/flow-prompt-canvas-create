@@ -11,6 +11,22 @@ export const initialNodes: Node[] = [
       type: 'start'
     },
   },
+  {
+    id: 'process',
+    type: 'custom',
+    position: { x: 250, y: 250 },
+    data: { 
+      label: 'Process Data',
+      type: 'api'
+    },
+  }
 ];
 
-export const initialEdges: Edge[] = [];
+export const initialEdges: Edge[] = [
+  {
+    id: 'edge-start-process',
+    source: 'start',
+    target: 'process',
+    animated: true
+  }
+];

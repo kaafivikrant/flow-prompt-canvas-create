@@ -44,19 +44,19 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate processing time
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Mock flow generation based on prompt
-      const newNodeId = `node-${nodes.length + 1}`;
+      // Generate node based on prompt
+      const newNodeId = `node-${Date.now()}`;
       const lastNodeId = nodes.length > 0 ? nodes[nodes.length - 1].id : null;
       
       const newNode: Node = {
         id: newNodeId,
         data: { 
-          label: `Node from prompt: "${prompt.substring(0, 20)}${prompt.length > 20 ? '...' : ''}"`,
+          label: `${prompt.substring(0, 20)}${prompt.length > 20 ? '...' : ''}`,
           type: 'api'
         },
         position: { 
-          x: lastNodeId ? nodes.find(n => n.id === lastNodeId)!.position.x + 250 : 250, 
-          y: lastNodeId ? nodes.find(n => n.id === lastNodeId)!.position.y : 100 
+          x: lastNodeId ? nodes.find(n => n.id === lastNodeId)!.position.x : 250, 
+          y: lastNodeId ? nodes.find(n => n.id === lastNodeId)!.position.y + 150 : 100 
         },
         type: 'custom'
       };
@@ -66,7 +66,7 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If there's a previous node, connect it to the new node
       if (lastNodeId) {
         const newEdge: Edge = {
-          id: `edge-${edges.length + 1}`,
+          id: `edge-${Date.now()}`,
           source: lastNodeId,
           target: newNodeId,
           animated: true,

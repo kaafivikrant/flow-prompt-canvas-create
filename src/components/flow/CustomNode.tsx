@@ -10,13 +10,13 @@ interface CustomNodeData {
 }
 
 // Properly type the component to work with ReactFlow's NodeProps
-const CustomNode = memo(({ data, selected }: NodeProps) => {
+const CustomNode = ({ data }: NodeProps) => {
   // Safely access data properties with proper type handling
   const label = data?.label as string;
   const nodeType = data?.type as string;
   
   return (
-    <div className={`p-3 ${selected ? 'border-flow-primary' : 'border-gray-200'}`}>
+    <div className="p-3 rounded-md border bg-white shadow-md">
       <div className="flex items-start gap-3">
         <div className="bg-flow-background p-2 rounded text-flow-primary">
           {nodeType === 'api' ? <ArrowRight size={20} /> : <SquareDashed size={20} />}
@@ -41,6 +41,6 @@ const CustomNode = memo(({ data, selected }: NodeProps) => {
       />
     </div>
   );
-});
+};
 
-export default CustomNode;
+export default memo(CustomNode);
