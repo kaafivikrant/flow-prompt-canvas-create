@@ -5,15 +5,17 @@ import {
   Background, 
   Controls, 
   MiniMap,
+  BackgroundVariant,
+  NodeTypes
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import { useFlow } from './FlowProvider';
 import CustomNode from './CustomNode';
 
-// Custom node types
-const nodeTypes = {
-  custom: CustomNode,
+// Define node types with correct type casting
+const nodeTypes: NodeTypes = {
+  custom: CustomNode as any, // Using type assertion to resolve compatibility issue
 };
 
 const FlowCanvas = () => {
@@ -37,7 +39,7 @@ const FlowCanvas = () => {
         fitView
         attributionPosition="bottom-right"
       >
-        <Background color="#cbd5e1" variant="dots" gap={24} size={1} />
+        <Background color="#cbd5e1" variant={BackgroundVariant.Dots} gap={24} size={1} />
         <Controls />
         <MiniMap
           nodeStrokeWidth={3}
