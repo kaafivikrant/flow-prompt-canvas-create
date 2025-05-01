@@ -28,7 +28,7 @@ const FlowCanvas = () => {
   } = useFlow();
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 h-[calc(100vh-160px)]">
       <ReactFlow
         nodes={nodes}
         edges={edges}
