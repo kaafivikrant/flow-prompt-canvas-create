@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { NodeDefinition } from './types/NodeDefinition';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import NodeMapper from './NodeMapper';
 import { useFlow } from './FlowProvider';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import NodeConfigEditor from './nodeDetails/NodeConfigEditor';
+import NodeConfigDisplay from './nodeDetails/NodeConfigDisplay';
+import NodeMappingSection from './nodeDetails/NodeMappingSection';
 
 interface NodeDetailsProps {
   nodeDefinition?: NodeDefinition;
@@ -114,6 +115,13 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
     }
   };
 
+  const handleSelectMapTarget = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedMapTarget(e.target.value);
+    if (e.target.value) {
+      onEditMapping(true);
+    }
+  };
+
   return (
     <div className="border border-gray-200 rounded-md bg-white">
       <div className="p-4 border-b border-gray-200 flex justify-between">
@@ -149,115 +157,30 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
         <TabsContent value="config" className="p-4">
           <div className="space-y-4">
             {isEditing ? (
-              <>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Endpoint:</label>
-                  <Input 
-                    value={editedConfig.endpoint || ''} 
-                    onChange={(e) => setEditedConfig({...editedConfig, endpoint: e.target.value})}
-                    className="text-xs h-8"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Method:</label>
-                  <select 
-                    value={editedConfig.method || ''}
-                    onChange={(e) => setEditedConfig({...editedConfig, method: e.target.value})}
-                    className="w-full p-2 text-xs border border-gray-200 rounded h-8"
-                  >
-                    <option value="GET">GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="DELETE">DELETE</option>
-                    <option value="PATCH">PATCH</option>
-                  </select>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setIsEditing(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={handleSaveConfig}
-                  >
-                    Save
-                  </Button>
-                </div>
-              </>
+              <NodeConfigEditor
+                nodeDefinition={nodeDefinition}
+                editedConfig={editedConfig}
+                setEditedConfig={setEditedConfig}
+                setIsEditing={setIsEditing}
+                handleSaveConfig={handleSaveConfig}
+              />
             ) : (
-              <>
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-medium text-sm">Configuration</h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 p-2"
-                    onClick={handleEdit}
-                  >
-                    <Edit className="h-4 w-4 mr-1" /> Edit
-                  </Button>
-                </div>
-                <div className="bg-gray-50 p-2 rounded text-xs font-mono">
-                  <pre>{JSON.stringify(nodeDefinition.config, null, 2)}</pre>
-                </div>
-              </>
+              <NodeConfigDisplay 
+                config={nodeDefinition.config} 
+                handleEdit={handleEdit} 
+              />
             )}
           </div>
         </TabsContent>
         
         <TabsContent value="mapping" className="p-4">
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium text-sm text-gray-700 mb-1">Request Mapping</h4>
-              <div className="bg-gray-50 p-2 rounded text-xs font-mono">
-                <pre>{JSON.stringify(nodeDefinition.mapping.request, null, 2)}</pre>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-medium text-sm text-gray-700 mb-1">Response Mapping</h4>
-              <div className="bg-gray-50 p-2 rounded text-xs font-mono">
-                <pre>{JSON.stringify(nodeDefinition.mapping.response, null, 2)}</pre>
-              </div>
-            </div>
-            
-            {potentialTargets.length > 0 && (
-              <div>
-                <h4 className="font-medium text-sm text-gray-700 mb-1">Map to Target Node</h4>
-                <select
-                  className="w-full p-2 text-xs border border-gray-200 rounded"
-                  onChange={(e) => {
-                    setSelectedMapTarget(e.target.value);
-                    if (e.target.value) {
-                      onEditMapping(true);
-                    }
-                  }}
-                  value={selectedMapTarget || ''}
-                >
-                  <option value="">Select target node...</option>
-                  {potentialTargets.map((target) => (
-                    <option key={target.nodeName} value={target.nodeName}>
-                      {target.nodeName}
-                    </option>
-                  ))}
-                </select>
-                
-                {selectedMapTarget && (
-                  <div className="mt-4">
-                    <NodeMapper 
-                      sourceNode={nodeDefinition}
-                      targetNode={potentialTargets.find(n => n.nodeName === selectedMapTarget)}
-                      onClose={handleMapperClose}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <NodeMappingSection
+            nodeDefinition={nodeDefinition}
+            potentialTargets={potentialTargets}
+            selectedMapTarget={selectedMapTarget}
+            setSelectedMapTarget={setSelectedMapTarget}
+            handleMapperClose={handleMapperClose}
+          />
         </TabsContent>
         
         <TabsContent value="policy" className="p-4">
