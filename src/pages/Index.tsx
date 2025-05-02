@@ -1,6 +1,6 @@
 
 import FlowCanvas from '@/components/flow/FlowCanvas';
-import { PromptInput } from '@/components/flow/PromptInput';
+import FloatingPrompt from '@/components/flow/FloatingPrompt';
 import { FlowProvider } from '@/components/flow/FlowProvider';
 
 const Index = () => {
@@ -15,8 +15,8 @@ const Index = () => {
       
       <FlowProvider>
         <div className="flex-1 relative flex flex-col">
-          <PromptInput />
           <FlowCanvas />
+          <FloatingPrompt />
         </div>
       </FlowProvider>
     </div>

@@ -9,6 +9,7 @@ type ProcessingStatus = 'idle' | 'processing' | 'error' | 'success';
 interface FlowContextType {
   nodes: Node[];
   edges: Edge[];
+  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection) => void;
@@ -129,6 +130,7 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     nodes,
     edges,
+    setNodes,
     onNodesChange,
     onEdgesChange,
     onConnect,
