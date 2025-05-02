@@ -1,9 +1,10 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Node, Edge, NodeChange, EdgeChange, Connection, addEdge, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import { initialNodes, initialEdges } from './initialElements';
 import { getNodeDefinitionByName } from './library/BankingNodes';
 import { NodeDefinition } from './types/NodeDefinition';
+import { useToast } from '@/hooks/use-toast';
 
 type ProcessingStatus = 'idle' | 'processing' | 'error' | 'success';
 
@@ -24,6 +25,8 @@ interface FlowContextType {
   moveNode: (nodeId: string, targetIndex: number) => void;
 }
 
+const STORAGE_KEY = 'connectCX-flow-data';
+
 const FlowContext = createContext<FlowContextType | undefined>(undefined);
 
 // Helper function to determine node type from prompt text
@@ -43,11 +46,45 @@ const determineNodeType = (prompt: string): string => {
   }
 };
 
+// Helper to load data from localStorage
+const loadFromStorage = () => {
+  try {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      return {
+        nodes: parsedData.nodes || initialNodes,
+        edges: parsedData.edges || initialEdges
+      };
+    }
+  } catch (error) {
+    console.error('Error loading flow data from localStorage:', error);
+  }
+  return { nodes: initialNodes, edges: initialEdges };
+};
+
+// Helper to save data to localStorage
+const saveToStorage = (nodes: Node[], edges: Edge[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, edges }));
+  } catch (error) {
+    console.error('Error saving flow data to localStorage:', error);
+  }
+};
+
 export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const { toast } = useToast();
+  const { nodes: initialLoadedNodes, edges: initialLoadedEdges } = loadFromStorage();
+  
+  const [nodes, setNodes] = useState<Node[]>(initialLoadedNodes);
+  const [edges, setEdges] = useState<Edge[]>(initialLoadedEdges);
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>('idle');
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
+
+  // Save to localStorage whenever nodes or edges change
+  useEffect(() => {
+    saveToStorage(nodes, edges);
+  }, [nodes, edges]);
 
   const onNodesChange = (changes: NodeChange[]) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
@@ -67,11 +104,20 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Remove connected edges
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    
+    toast({
+      title: "Node removed",
+      description: "The node and its connections have been removed from the flow"
+    });
   };
 
   const clearCanvas = () => {
     setNodes([]);
     setEdges([]);
+    toast({
+      title: "Canvas cleared",
+      description: "All nodes and connections have been removed"
+    });
   };
 
   const addNode = (nodeDefinition: NodeDefinition) => {
@@ -108,6 +154,11 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setEdges(eds => [...eds, newEdge]);
     }
+    
+    toast({
+      title: "Node added",
+      description: `${nodeDefinition.nodeName} has been added to your workflow`
+    });
   };
 
   const moveNode = (nodeId: string, targetIndex: number) => {
@@ -153,6 +204,11 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       return newEdges;
+    });
+    
+    toast({
+      title: "Node reordered",
+      description: "The workflow order has been updated"
     });
   };
 
@@ -222,9 +278,18 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       setProcessingStatus('success');
+      toast({
+        title: "Node created",
+        description: "A new node has been created based on your prompt"
+      });
     } catch (error) {
       console.error('Error processing prompt:', error);
       setProcessingStatus('error');
+      toast({
+        title: "Error",
+        description: "Failed to process your prompt",
+        variant: "destructive"
+      });
     }
   };
 

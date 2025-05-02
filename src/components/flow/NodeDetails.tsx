@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NodeDefinition } from './types/NodeDefinition';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NodeMapper from './NodeMapper';
@@ -7,6 +7,7 @@ import { useFlow } from './FlowProvider';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 interface NodeDetailsProps {
   nodeDefinition?: NodeDefinition;
@@ -18,6 +19,15 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
   const [selectedMapTarget, setSelectedMapTarget] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedConfig, setEditedConfig] = useState<{endpoint?: string, method?: string}>({});
+  const { toast } = useToast();
+  
+  // Reset state when node changes
+  useEffect(() => {
+    setSelectedMapTarget(null);
+    setIsEditing(false);
+    setEditedConfig({});
+    onEditMapping(false);
+  }, [nodeDefinition?.nodeName]);
   
   if (!nodeDefinition) {
     return (
@@ -79,6 +89,10 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
       })
     );
     setIsEditing(false);
+    toast({
+      title: "Configuration saved",
+      description: "The node configuration has been updated"
+    });
   };
 
   const handleDeleteNode = () => {
@@ -91,6 +105,11 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
       
       if (nodeToDelete) {
         removeNode(nodeToDelete.id);
+        handleMapperClose(); // Close the mapper when deleting a node
+        toast({
+          title: "Node deleted",
+          description: `Node "${nodeDefinition.nodeName}" has been removed from the flow`
+        });
       }
     }
   };

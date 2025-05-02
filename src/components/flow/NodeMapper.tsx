@@ -20,6 +20,20 @@ const NodeMapper: React.FC<NodeMapperProps> = ({ sourceNode, targetNode, onClose
   if (!sourceNode || !targetNode) {
     return (
       <Card className="bg-white/50 backdrop-blur-md border-gray-200">
+        <CardHeader className="p-4 pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-sm font-medium">Node Mapper</CardTitle>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0" 
+              onClick={onClose}
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
         <CardContent className="p-4">
           <p className="text-sm text-gray-500">
             Select source and target nodes to create mappings
