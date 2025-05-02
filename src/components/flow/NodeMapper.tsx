@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { NodeDefinition } from './types/NodeDefinition';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useFlow } from './FlowProvider';
@@ -40,14 +39,20 @@ const NodeMapper: React.FC<NodeMapperProps> = ({ sourceNode, targetNode }) => {
     // Find the target node and update its request mappings
     setNodes(currentNodes => 
       currentNodes.map(node => {
-        if (node.data?.nodeDefinition?.nodeName === targetNode.nodeName) {
+        const nodeData = node.data;
+        if (nodeData?.nodeDefinition && 
+            (nodeData.nodeDefinition as NodeDefinition).nodeName === targetNode.nodeName) {
+          
+          // Create a new node with the updated mapping
           const updatedNode = { ...node };
-          const updatedDefinition = { 
-            ...updatedNode.data.nodeDefinition,
+          const typedDefinition = updatedNode.data.nodeDefinition as NodeDefinition;
+          
+          const updatedDefinition: NodeDefinition = { 
+            ...typedDefinition,
             mapping: {
-              ...updatedNode.data.nodeDefinition.mapping,
+              ...typedDefinition.mapping,
               request: {
-                ...updatedNode.data.nodeDefinition.mapping.request,
+                ...typedDefinition.mapping.request,
                 ...Object.fromEntries(
                   Object.entries(mappings).map(([targetField, sourceField]) => 
                     [targetField, sourceField]

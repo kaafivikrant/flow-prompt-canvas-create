@@ -25,9 +25,10 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition }) => {
   const potentialTargets = nodes
     .filter(node => 
       node.data?.nodeDefinition && 
-      node.data.nodeDefinition.nodeName !== nodeDefinition.nodeName
+      (node.data.nodeDefinition as NodeDefinition).nodeName !== nodeDefinition.nodeName
     )
-    .map(node => node.data.nodeDefinition);
+    .map(node => node.data.nodeDefinition as NodeDefinition)
+    .filter((def): def is NodeDefinition => !!def);
 
   return (
     <div className="border border-gray-200 rounded-md bg-white">
