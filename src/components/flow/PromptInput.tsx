@@ -22,7 +22,7 @@ export const PromptInput = () => {
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe your workflow (e.g., 'Create a workflow that sends an email when a form is submitted')"
+            placeholder="Describe your workflow (e.g., 'Create Form -> Process Data -> Send Email')"
             className="flex-1 min-h-[60px] resize-none border-gray-200 bg-white/70 backdrop-blur-sm"
           />
           
@@ -49,7 +49,7 @@ export const PromptInput = () => {
           ) : processingStatus === 'success' ? (
             <span className="text-green-600">Flow nodes generated successfully!</span>
           ) : (
-            "Type a description of what you want to build and we'll generate the flow for you."
+            "Type a description or use 'node1 -> node2 -> node3' format to create connected nodes."
           )}
         </div>
       </div>
