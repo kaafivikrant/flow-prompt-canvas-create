@@ -32,9 +32,15 @@ const FlowCanvas = () => {
 
   const [selectedNodeDefinition, setSelectedNodeDefinition] = useState<NodeDefinition | undefined>(undefined);
 
-  // Handle node click to show node details
+  // Handle node click to show node details - now with proper type safety
   const handleNodeClick = (event: React.MouseEvent, node: Node) => {
-    setSelectedNodeDefinition(node.data?.nodeDefinition);
+    // Safely access and cast the node definition to the expected type
+    const nodeData = node.data;
+    const definition = nodeData && 'nodeDefinition' in nodeData 
+      ? nodeData.nodeDefinition as NodeDefinition 
+      : undefined;
+    
+    setSelectedNodeDefinition(definition);
   };
 
   return (
