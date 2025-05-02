@@ -5,14 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useFlow } from './FlowProvider';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 
 interface NodeMapperProps {
   sourceNode?: NodeDefinition;
   targetNode?: NodeDefinition;
+  onClose: () => void; // Add close handler
 }
 
-const NodeMapper: React.FC<NodeMapperProps> = ({ sourceNode, targetNode }) => {
+const NodeMapper: React.FC<NodeMapperProps> = ({ sourceNode, targetNode, onClose }) => {
   const { nodes, setNodes } = useFlow();
   const [mappings, setMappings] = useState<Record<string, string>>({});
 
@@ -72,6 +73,9 @@ const NodeMapper: React.FC<NodeMapperProps> = ({ sourceNode, targetNode }) => {
         return node;
       })
     );
+    
+    // Close the mapper after applying
+    onClose();
   };
 
   // Extract response fields from source node
@@ -83,7 +87,18 @@ const NodeMapper: React.FC<NodeMapperProps> = ({ sourceNode, targetNode }) => {
   return (
     <Card className="bg-white/50 backdrop-blur-md border-gray-200">
       <CardHeader className="p-4 pb-2">
-        <CardTitle className="text-sm font-medium">Node Mapper</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-sm font-medium">Node Mapper</CardTitle>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0" 
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="space-y-4">

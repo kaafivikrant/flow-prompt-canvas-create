@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 import { Node, Edge, NodeChange, EdgeChange, Connection, addEdge, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import { initialNodes, initialEdges } from './initialElements';
 import { getNodeDefinitionByName } from './library/BankingNodes';
+import { NodeDefinition } from './types/NodeDefinition';
 
 type ProcessingStatus = 'idle' | 'processing' | 'error' | 'success';
 
@@ -10,12 +11,17 @@ interface FlowContextType {
   nodes: Node[];
   edges: Edge[];
   setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection) => void;
   processPrompt: (prompt: string) => void;
   processingStatus: ProcessingStatus;
   currentPrompt: string;
+  removeNode: (nodeId: string) => void;
+  clearCanvas: () => void;
+  addNode: (nodeDefinition: NodeDefinition) => void;
+  moveNode: (nodeId: string, targetIndex: number) => void;
 }
 
 const FlowContext = createContext<FlowContextType | undefined>(undefined);
@@ -53,6 +59,101 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const onConnect = (connection: Connection) => {
     setEdges((eds) => addEdge({ ...connection, animated: true }, eds));
+  };
+
+  const removeNode = (nodeId: string) => {
+    // Remove the node
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    
+    // Remove connected edges
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+  };
+
+  const clearCanvas = () => {
+    setNodes([]);
+    setEdges([]);
+  };
+
+  const addNode = (nodeDefinition: NodeDefinition) => {
+    const nodeType = nodeDefinition.category === 'payment' ? 'payment' : 
+                    nodeDefinition.category === 'verification' ? 'verification' : 
+                    nodeDefinition.category === 'notification' ? 'notification' : 'api';
+    
+    const newNodeId = `node-${Date.now()}`;
+    const newNode: Node = {
+      id: newNodeId,
+      data: { 
+        label: nodeDefinition.nodeName,
+        type: nodeType,
+        nodeDefinition: nodeDefinition
+      },
+      position: { 
+        x: 250, 
+        y: nodes.length > 0 ? nodes[nodes.length - 1].position.y + 150 : 100 
+      },
+      type: 'custom'
+    };
+    
+    setNodes(nds => [...nds, newNode]);
+    
+    // If there's another node, connect it to the new node
+    if (nodes.length > 0) {
+      const lastNodeId = nodes[nodes.length - 1].id;
+      const newEdge: Edge = {
+        id: `edge-${Date.now()}`,
+        source: lastNodeId,
+        target: newNodeId,
+        animated: true,
+      };
+      
+      setEdges(eds => [...eds, newEdge]);
+    }
+  };
+
+  const moveNode = (nodeId: string, targetIndex: number) => {
+    setNodes(currentNodes => {
+      // Find the node to move
+      const nodeIndex = currentNodes.findIndex(node => node.id === nodeId);
+      if (nodeIndex === -1 || targetIndex < 0 || targetIndex >= currentNodes.length) {
+        return currentNodes;
+      }
+      
+      // Create a copy of the nodes array
+      const newNodes = [...currentNodes];
+      
+      // Remove the node from its current position
+      const [movedNode] = newNodes.splice(nodeIndex, 1);
+      
+      // Insert it at the target position
+      newNodes.splice(targetIndex, 0, movedNode);
+      
+      // Adjust positions of nodes to maintain vertical flow
+      return newNodes.map((node, idx) => ({
+        ...node,
+        position: {
+          x: node.position.x,
+          y: 100 + idx * 150
+        }
+      }));
+    });
+
+    // Update edges to maintain proper connections
+    setEdges(currentEdges => {
+      // Remove all edges
+      const newEdges: Edge[] = [];
+      
+      // Create new edges between consecutive nodes
+      for (let i = 0; i < nodes.length - 1; i++) {
+        newEdges.push({
+          id: `edge-${i}-${i+1}-${Date.now()}`,
+          source: nodes[i].id,
+          target: nodes[i+1].id,
+          animated: true,
+        });
+      }
+      
+      return newEdges;
+    });
   };
 
   const processPrompt = async (prompt: string) => {
@@ -131,12 +232,17 @@ export const FlowProvider: React.FC<{ children: React.ReactNode }> = ({ children
     nodes,
     edges,
     setNodes,
+    setEdges,
     onNodesChange,
     onEdgesChange,
     onConnect,
     processPrompt,
     processingStatus,
     currentPrompt,
+    removeNode,
+    clearCanvas,
+    addNode,
+    moveNode,
   };
 
   return <FlowContext.Provider value={value}>{children}</FlowContext.Provider>;
