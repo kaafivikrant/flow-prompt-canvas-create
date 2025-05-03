@@ -7,7 +7,7 @@ interface NodeMappingSectionProps {
   nodeDefinition: NodeDefinition;
   potentialTargets: NodeDefinition[];
   selectedMapTarget: string | null;
-  setSelectedMapTarget: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedMapTarget: (target: string | null) => void;
   handleMapperClose: () => void;
 }
 
@@ -39,9 +39,7 @@ const NodeMappingSection: React.FC<NodeMappingSectionProps> = ({
           <h4 className="font-medium text-sm text-gray-700 mb-1">Map to Target Node</h4>
           <select
             className="w-full p-2 text-xs border border-gray-200 rounded"
-            onChange={(e) => {
-              setSelectedMapTarget(e.target.value);
-            }}
+            onChange={(e) => setSelectedMapTarget(e.target.value || null)}
             value={selectedMapTarget || ''}
           >
             <option value="">Select target node...</option>

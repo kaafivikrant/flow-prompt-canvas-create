@@ -10,6 +10,16 @@ const CustomNode = ({ data }: NodeProps) => {
   const nodeType = data?.type as string;
   const nodeDefinition = data?.nodeDefinition as NodeDefinition | undefined;
   
+  // Truncate long text
+  const truncateText = (text: string, maxLength: number) => {
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+  
+  const displayLabel = truncateText(label, 20);
+  const displayDescription = nodeDefinition?.description 
+    ? truncateText(nodeDefinition.description, 30)
+    : 'Click to configure';
+  
   // Select icon based on node type
   const getNodeIcon = () => {
     switch (nodeType) {
@@ -71,15 +81,15 @@ const CustomNode = ({ data }: NodeProps) => {
   };
   
   return (
-    <div className={`p-3 rounded-md border bg-white shadow-md min-w-[200px]`}>
+    <div className={`p-3 rounded-md border bg-white shadow-md w-[200px]`}>
       <div className="flex items-start gap-3">
         <div className={`${getNodeBackground()} p-2 rounded ${getNodeTextColor()}`}>
           {getNodeIcon()}
         </div>
         <div className="flex-1">
-          <div className="font-medium text-flow-text">{label}</div>
+          <div className="font-medium text-flow-text">{displayLabel}</div>
           <div className="text-xs text-gray-500 mt-1">
-            {nodeDefinition?.description || 'Click to configure'}
+            {displayDescription}
           </div>
         </div>
       </div>

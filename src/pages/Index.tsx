@@ -41,7 +41,7 @@ const Index = () => {
         </header>
         
         <div className="flex-1 relative flex flex-col">
-          <FlowCanvas />
+          <FlowCanvas onMappingChange={setIsMapping} />
           <FloatingPrompt isVisible={!isMapping} />
         </div>
         
