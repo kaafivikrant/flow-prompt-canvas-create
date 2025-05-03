@@ -52,11 +52,11 @@ export const PromptInput = () => {
             <span>
               Type a description or use one of these formats:
               <br />
-              - 'node1 -> node2 -> node3': Create connected nodes
+              - 'node1 {'->'} node2 {'->'} node3': Create connected nodes
               <br />
-              - 'add -> node_name': Add a specific node
+              - 'add {'->'} node_name': Add a specific node
               <br />
-              - 'remove -> node_name': Remove a specific node
+              - 'remove {'->'} node_name': Remove a specific node
             </span>
           )}
         </div>
