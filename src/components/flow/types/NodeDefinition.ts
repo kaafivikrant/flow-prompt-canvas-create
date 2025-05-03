@@ -4,7 +4,7 @@
  * This defines the structure of workflow nodes based on the PRD requirements
  */
 
-export type NodeCategory = 'transaction' | 'verification' | 'payment' | 'notification' | 'compliance' | 'reporting';
+export type NodeCategory = 'transaction' | 'verification' | 'payment' | 'notification' | 'compliance' | 'reporting' | 'anticipation' | 'party' | 'policy' | 'response' | 'reconciliation' | 'vault';
 
 export interface NodeConfig {
   endpoint?: string;
