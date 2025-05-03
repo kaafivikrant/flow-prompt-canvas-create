@@ -4,6 +4,7 @@ import { Edge, Node } from '@xyflow/react';
 import { useToast } from '@/hooks/use-toast';
 import { determineNodeType } from '../utils/flowUtils';
 import { ProcessingStatus } from './useFlowState';
+import { NodeDefinition } from '../types/NodeDefinition';
 
 type PromptProcessorProps = {
   nodes: Node[];
@@ -92,37 +93,41 @@ export const usePromptProcessor = ({
 
   const handleRemoveNode = (nodeName: string) => {
     // Find node with this name
-    const nodeToRemove = nodes.find(node => 
-      node.data?.nodeDefinition && node.data.nodeDefinition.nodeName === nodeName
-    );
+    const nodeToRemove = nodes.find(node => {
+      const nodeDefinition = node.data?.nodeDefinition as NodeDefinition | undefined;
+      return nodeDefinition && nodeDefinition.nodeName === nodeName;
+    });
     
     if (nodeToRemove) {
-      // Find incoming and outgoing edges
-      const incomingEdges = edges.filter(edge => edge.target === nodeToRemove.id);
-      const outgoingEdges = edges.filter(edge => edge.source === nodeToRemove.id);
-      
-      // Create connections between nodes that were connected to the removed node
-      const newEdges: Edge[] = [];
-      
-      incomingEdges.forEach(incoming => {
-        outgoingEdges.forEach(outgoing => {
-          newEdges.push({
-            id: `edge-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            source: incoming.source,
-            target: outgoing.target,
-            animated: true
+      // Get current edges to work with
+      setEdges(currentEdges => {
+        // Find incoming and outgoing edges
+        const incomingEdges = currentEdges.filter(edge => edge.target === nodeToRemove.id);
+        const outgoingEdges = currentEdges.filter(edge => edge.source === nodeToRemove.id);
+        
+        // Create connections between nodes that were connected to the removed node
+        const newEdges: Edge[] = [];
+        
+        incomingEdges.forEach(incoming => {
+          outgoingEdges.forEach(outgoing => {
+            newEdges.push({
+              id: `edge-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              source: incoming.source,
+              target: outgoing.target,
+              animated: true
+            });
           });
         });
+        
+        // Return filtered edges (removing those connected to removed node) and add new connections
+        return [
+          ...currentEdges.filter(edge => edge.source !== nodeToRemove.id && edge.target !== nodeToRemove.id),
+          ...newEdges
+        ];
       });
       
       // Remove the node
       setNodes(nds => nds.filter(node => node.id !== nodeToRemove.id));
-      
-      // Remove related edges and add new connections
-      setEdges(eds => [
-        ...eds.filter(edge => edge.source !== nodeToRemove.id && edge.target !== nodeToRemove.id),
-        ...newEdges
-      ]);
       
       return true;
     }

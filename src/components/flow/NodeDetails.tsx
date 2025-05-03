@@ -105,9 +105,10 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
       );
       
       if (nodeToDelete) {
-        removeNode(nodeToDelete.id);
-        // Close the mapper when deleting a node
+        // First close the mapper before removing the node
         handleMapperClose();
+        // Then remove the node
+        removeNode(nodeToDelete.id);
         toast({
           title: "Node deleted",
           description: `Node "${nodeDefinition.nodeName}" has been removed from the flow`
