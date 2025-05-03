@@ -30,6 +30,27 @@ export const bankingNodes: NodeDefinition[] = [
     }
   },
   {
+    nodeName: "Amend Anticipation",
+    description: "For transaction vault use cases, this block records the credit anticipation to the new payment contract when the amend anticipation is received.",
+    category: "transaction",
+    version: "1.0",
+    config: {
+      endpoint: "/amend-anticipation",
+      method: "POST",
+      validation: ["contract_id", "anticipation_amount"]
+    },
+    mapping: {
+      request: {
+        contract_id: "input.contract_id",
+        anticipation_amount: "input.anticipation_amount"
+      },
+      response: {
+        amended_contract_id: "output.amended_contract_id"
+      }
+    },
+    policy: null
+  },
+  {
     nodeName: "Validate KYC",
     description: "Verifies user identity using KYC service",
     category: "verification",
