@@ -105,8 +105,10 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
       );
       
       if (nodeToDelete) {
+        // First close the mapper before removing the node
+        handleMapperClose();
+        // Then remove the node
         removeNode(nodeToDelete.id);
-        handleMapperClose(); // Close the mapper when deleting a node
         toast({
           title: "Node deleted",
           description: `Node "${nodeDefinition.nodeName}" has been removed from the flow`
@@ -115,10 +117,12 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
     }
   };
 
-  const handleSelectMapTarget = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMapTarget(e.target.value);
-    if (e.target.value) {
+  const handleSelectMapTarget = (targetName: string | null) => {
+    setSelectedMapTarget(targetName);
+    if (targetName) {
       onEditMapping(true);
+    } else {
+      onEditMapping(false);
     }
   };
 
@@ -178,7 +182,7 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ nodeDefinition, onEditMapping
             nodeDefinition={nodeDefinition}
             potentialTargets={potentialTargets}
             selectedMapTarget={selectedMapTarget}
-            setSelectedMapTarget={setSelectedMapTarget}
+            setSelectedMapTarget={handleSelectMapTarget}
             handleMapperClose={handleMapperClose}
           />
         </TabsContent>

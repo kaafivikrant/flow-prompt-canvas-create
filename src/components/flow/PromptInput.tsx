@@ -49,7 +49,15 @@ export const PromptInput = () => {
           ) : processingStatus === 'success' ? (
             <span className="text-green-600">Flow nodes generated successfully!</span>
           ) : (
-            "Type a description or use 'node1 -> node2 -> node3' format to create connected nodes."
+            <span>
+              Type a description or use one of these formats:
+              <br />
+              - 'node1 {'->'} node2 {'->'} node3': Create connected nodes
+              <br />
+              - 'add {'->'} node_name': Add a specific node
+              <br />
+              - 'remove {'->'} node_name': Remove a specific node
+            </span>
           )}
         </div>
       </div>

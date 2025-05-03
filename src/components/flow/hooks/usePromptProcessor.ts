@@ -4,6 +4,7 @@ import { Edge, Node } from '@xyflow/react';
 import { useToast } from '@/hooks/use-toast';
 import { determineNodeType } from '../utils/flowUtils';
 import { ProcessingStatus } from './useFlowState';
+import { NodeDefinition } from '../types/NodeDefinition';
 
 type PromptProcessorProps = {
   nodes: Node[];
@@ -27,6 +28,11 @@ export const usePromptProcessor = ({
     const nodeType = determineNodeType(label);
     const nodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
+    // Truncate description if it's too long
+    const truncatedDescription = label.length > 30 
+      ? label.substring(0, 30) + "..." 
+      : label;
+    
     return {
       id: nodeId,
       data: { 
@@ -34,7 +40,7 @@ export const usePromptProcessor = ({
         type: nodeType,
         nodeDefinition: {
           nodeName: label,
-          description: label,
+          description: truncatedDescription,
           category: nodeType === 'payment' ? 'payment' : 
                    nodeType === 'verification' ? 'verification' : 
                    nodeType === 'notification' ? 'notification' : 'transaction',
@@ -57,16 +63,121 @@ export const usePromptProcessor = ({
     };
   };
 
+  const handleAddNode = (nodeName: string) => {
+    const baseY = nodes.length > 0 
+      ? Math.max(...nodes.map(node => node.position.y)) + 150 
+      : 100;
+    
+    const newNode = createNode(
+      nodeName,
+      { x: 250, y: baseY }
+    );
+    
+    setNodes(nds => [...nds, newNode]);
+    
+    // Connect with the last node if exists
+    if (nodes.length > 0) {
+      const lastNodeId = nodes[nodes.length - 1].id;
+      const newEdge: Edge = {
+        id: `edge-${Date.now()}`,
+        source: lastNodeId,
+        target: newNode.id,
+        animated: true,
+      };
+      
+      setEdges(eds => [...eds, newEdge]);
+    }
+    
+    return newNode;
+  };
+
+  const handleRemoveNode = (nodeName: string) => {
+    // Find node with this name
+    const nodeToRemove = nodes.find(node => {
+      const nodeDefinition = node.data?.nodeDefinition as NodeDefinition | undefined;
+      return nodeDefinition && nodeDefinition.nodeName === nodeName;
+    });
+    
+    if (nodeToRemove) {
+      // Get current edges to work with
+      setEdges(currentEdges => {
+        // Find incoming and outgoing edges
+        const incomingEdges = currentEdges.filter(edge => edge.target === nodeToRemove.id);
+        const outgoingEdges = currentEdges.filter(edge => edge.source === nodeToRemove.id);
+        
+        // Create connections between nodes that were connected to the removed node
+        const newEdges: Edge[] = [];
+        
+        incomingEdges.forEach(incoming => {
+          outgoingEdges.forEach(outgoing => {
+            newEdges.push({
+              id: `edge-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              source: incoming.source,
+              target: outgoing.target,
+              animated: true
+            });
+          });
+        });
+        
+        // Return filtered edges (removing those connected to removed node) and add new connections
+        return [
+          ...currentEdges.filter(edge => edge.source !== nodeToRemove.id && edge.target !== nodeToRemove.id),
+          ...newEdges
+        ];
+      });
+      
+      // Remove the node
+      setNodes(nds => nds.filter(node => node.id !== nodeToRemove.id));
+      
+      return true;
+    }
+    
+    return false;
+  };
+
   const processPrompt = async (prompt: string) => {
     setCurrentPrompt(prompt);
     setProcessingStatus('processing');
     
     try {
       // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Check for command patterns
+      const addMatch = prompt.match(/^add\s*->\s*(.+)$/i);
+      const removeMatch = prompt.match(/^remove\s*->\s*(.+)$/i);
+      
+      if (addMatch && addMatch[1]) {
+        // Add command
+        const nodeName = addMatch[1].trim();
+        handleAddNode(nodeName);
+        toast({
+          title: "Node added",
+          description: `Added node "${nodeName}" to the flow`
+        });
+      } 
+      else if (removeMatch && removeMatch[1]) {
+        // Remove command
+        const nodeName = removeMatch[1].trim();
+        const removed = handleRemoveNode(nodeName);
+        
+        if (removed) {
+          toast({
+            title: "Node removed",
+            description: `Removed node "${nodeName}" and reconnected the flow`
+          });
+        } else {
+          toast({
+            title: "Node not found",
+            description: `Could not find node "${nodeName}" to remove`,
+            variant: "destructive"
+          });
+          setProcessingStatus('error');
+          return;
+        }
+      }
       // Check if the prompt contains "->" indicating multiple nodes
-      if (prompt.includes('->')) {
+      else if (prompt.includes('->')) {
         const nodeLabels = prompt.split('->').map(label => label.trim());
         
         if (nodeLabels.length > 1) {
@@ -112,64 +223,10 @@ export const usePromptProcessor = ({
         }
       } else {
         // Original single node creation logic
-        const newNodeId = `node-${Date.now()}`;
-        const lastNodeId = nodes.length > 0 ? nodes[nodes.length - 1].id : null;
-        
-        // Determine node type from prompt and create a label
-        const nodeType = determineNodeType(prompt);
-        const nodeLabel = prompt.length > 20 
-          ? `${prompt.substring(0, 20)}...`
-          : prompt;
-        
-        const newNode: Node = {
-          id: newNodeId,
-          data: { 
-            label: nodeLabel,
-            type: nodeType,
-            nodeDefinition: {
-              nodeName: nodeLabel,
-              description: prompt,
-              category: nodeType === 'payment' ? 'payment' : 
-                       nodeType === 'verification' ? 'verification' : 
-                       nodeType === 'notification' ? 'notification' : 'transaction',
-              version: "1.0",
-              config: {
-                endpoint: `/api/${nodeType}`,
-                method: "POST"
-              },
-              mapping: {
-                request: {},
-                response: {}
-              },
-              policy: {
-                allowedNextNodes: []
-              }
-            }
-          },
-          position: { 
-            x: lastNodeId ? nodes.find(n => n.id === lastNodeId)!.position.x : 250, 
-            y: lastNodeId ? nodes.find(n => n.id === lastNodeId)!.position.y + 150 : 100 
-          },
-          type: 'custom'
-        };
-        
-        setNodes(nds => [...nds, newNode]);
-        
-        // If there's a previous node, connect it to the new node
-        if (lastNodeId) {
-          const newEdge: Edge = {
-            id: `edge-${Date.now()}`,
-            source: lastNodeId,
-            target: newNodeId,
-            animated: true,
-          };
-          
-          setEdges(eds => [...eds, newEdge]);
-        }
-        
+        handleAddNode(prompt);
         toast({
-          title: "Node created",
-          description: "A new node has been created based on your prompt"
+          title: "Node added",
+          description: "A new node has been added to your flow"
         });
       }
       
